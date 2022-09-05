@@ -20,7 +20,7 @@ PMSM_flux_model.csv - A model driven by flux dynamic equations presented in "Con
 PMSM_simlnk_model.csv - Is a simulation of a PMSM utilizing Matlab's Simulink, Simscape (Simscape Electrical) block.
 
 Note: The simulation of the simulink and the dq-frame model are equivalent in values.
-      (The small difference is due to the voltage source amplitude is not 230A but ~230A).
+      (The small difference is due to the voltage source amplitude is not 230A, but ~230A).
       However, the flux dynamic model has a large deviation, it still has to be determined why.
 """
 
