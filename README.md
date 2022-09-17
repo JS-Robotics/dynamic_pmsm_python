@@ -9,7 +9,7 @@ $$ T_m = \frac{3}{2}\cdot\frac{p}{2}\left[\lambda_mi_q + (L_d - L_q)i_qi_d\right
 
 $$ \omega_e = \frac{p}{2}\omega_m $$
 
-$$ \lambda_m = 2/3 * k_t / p_p = 5.51328895422 / (p_pk_V) $$ 
+$$ \lambda_m = 2/3 * k_t / p_p = 5.5133 / (p_pk_V) $$ 
 
 Where:
 
