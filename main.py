@@ -1,4 +1,5 @@
 from math import sin, cos, pi, sqrt
+from driving_eq import di_d_func, di_q_func
 import csv
 import matplotlib.pyplot as plt
 
@@ -68,7 +69,7 @@ if __name__ == '__main__':
     i_q = 0
     i_d = 0
 
-    dt = 0.00001
+    dt = 0.000001
     time = create_time_span(0, 0.5, dt)
     w_psu = 60 * 2 * pi
     a_psu = 230
@@ -90,8 +91,20 @@ if __name__ == '__main__':
         di_q = u_q / L_q - (R_s*i_q) / L_q - (L_d * p_p * w_rotor * i_d) / L_q - (lambda_m * p_p * w_rotor) / L_q
         di_d = u_d / L_d - (R_s*i_d) / L_d + (L_q * p_p * w_rotor * i_q) / L_d
 
-        i_q = i_q + di_q * dt
-        i_d = i_d + di_d * dt
+        f1_q = di_q
+        f2_q = di_q_func(u_q, L_q, L_d, R_s, i_q+dt/2*f1_q, i_d, p_p, w_rotor, lambda_m)
+        f3_q = di_q_func(u_q, L_q, L_d, R_s, i_q+dt/2*f2_q, i_d, p_p, w_rotor, lambda_m)
+        f4_q = di_q_func(u_q, L_q, L_d, R_s, i_q+dt*f3_q, i_d, p_p, w_rotor, lambda_m)
+
+        f1_d = di_d
+        f2_d = di_d_func(u_d, L_q, L_d, R_s, i_q, i_d+dt/2*f1_d, p_p, w_rotor, lambda_m)
+        f3_d = di_d_func(u_d, L_q, L_d, R_s, i_q, i_d+dt/2*f2_d, p_p, w_rotor, lambda_m)
+        f4_d = di_d_func(u_d, L_q, L_d, R_s, i_q, i_d+dt*f3_d, p_p, w_rotor, lambda_m)
+
+        i_q = i_q + dt / 6 * (f1_q + 2 * f2_q + 2 * f3_q + f4_q)
+        #i_q = i_q + di_q * dt
+        i_d = i_d + dt / 6 * (f1_d + 2 * f2_d + 2 * f3_d + f4_d)
+        #i_d = i_d + di_d * dt
 
         T_em = 1.5 * p_p * (lambda_m * i_q + (L_d - L_q) * i_d * i_q)
 
