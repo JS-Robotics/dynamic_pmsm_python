@@ -1,5 +1,7 @@
 from math import sin, cos, pi, sqrt
 from driving_eq import di_d_func, di_q_func
+from transforms import park_transform, clarke_transform
+from pmsm import PMSynchronousMotor
 import csv
 import matplotlib.pyplot as plt
 
@@ -32,38 +34,15 @@ def create_time_span(t_start, t_end, step_size):
     return time_span
 
 
-def clarke_transformation(a, b, c):
-    """
-    Transform from three-phase to alpha-beta reference
-    :param a: Phase a value
-    :param b: Phase b value
-    :param c: Phase c value
-    :return: alpha, beta
-    """
-    alpha = 2 / 3 * (a - 0.5 * b - 0.5 * c)
-    beta = 2 / 3 * (sqrt(3) / 2 * b - sqrt(3) / 2 * c)
-    return alpha, beta
 
-
-def park_transformation(alpha, beta, angle):
-    """
-    Transform from alpha-beta reference to synchronous dq-axis
-    :param alpha: Phase alpha value
-    :param beta:  Phase beta value
-    :param angle: Electrical angular position
-    :return: d, q
-    """
-    d = cos(angle) * alpha + sin(angle) * beta
-    q = -sin(angle) * alpha + cos(angle) * beta
-    return d, q
 
 
 if __name__ == '__main__':
     p = 4  # poles
     p_p = p / 2  # pole pairs
-    T_rated = 0.8  # Nm
-    n_rated = 4500  # rpm
-    I_rated = 1.4  # A, rms
+    #T_rated = 0.8  # Nm
+    #n_rated = 4500  # rpm
+    #I_rated = 1.4  # A, rms
     T_load = 15
     J = 0.0027  # kg.m^2
     R_s = 0.0485  # Ohm
@@ -77,7 +56,7 @@ if __name__ == '__main__':
     i_q = 0
     i_d = 0
 
-    dt = 0.000001#0.000001
+    dt = 0.000005  # 0.000001
     time = create_time_span(0, 0.5, dt)
     w_psu = 60 * 2 * pi
     a_psu = 230
@@ -88,23 +67,24 @@ if __name__ == '__main__':
     w_rotor = 0
     theta_rotor = 0
     T_sim = []
-
+    T_2 = []
+    motor = PMSynchronousMotor({})
     for t in time:
         u_a = a_psu * sin(w_psu * t + phase_a)
         u_b = a_psu * sin(w_psu * t + phase_b)
         u_c = a_psu * sin(w_psu * t + phase_c)
-        u_alpha, u_beta = clarke_transformation(u_a, u_b, u_c)
-        u_d, u_q = park_transformation(u_alpha, u_beta, theta_e)
+        u_alpha, u_beta = clarke_transform(u_a, u_b, u_c)
+        u_d, u_q = park_transform(u_alpha, u_beta, theta_e)
 
-        di_q = u_q / L_q - (R_s*i_q) / L_q - (L_d * p_p * w_rotor * i_d) / L_q - (lambda_m * p_p * w_rotor) / L_q
-        di_d = u_d / L_d - (R_s*i_d) / L_d + (L_q * p_p * w_rotor * i_q) / L_d
+        #di_q = u_q / L_q - (R_s*i_q) / L_q - (L_d * p_p * w_rotor * i_d) / L_q - (lambda_m * p_p * w_rotor) / L_q
+        #di_d = u_d / L_d - (R_s*i_d) / L_d + (L_q * p_p * w_rotor * i_q) / L_d
 
-        f1_q = di_q
+        f1_q = u_q / L_q - (R_s*i_q) / L_q - (L_d * p_p * w_rotor * i_d) / L_q - (lambda_m * p_p * w_rotor) / L_q
         f2_q = di_q_func(u_q, L_q, L_d, R_s, i_q+dt/2*f1_q, i_d, p_p, w_rotor, lambda_m)
         f3_q = di_q_func(u_q, L_q, L_d, R_s, i_q+dt/2*f2_q, i_d, p_p, w_rotor, lambda_m)
         f4_q = di_q_func(u_q, L_q, L_d, R_s, i_q+dt*f3_q, i_d, p_p, w_rotor, lambda_m)
 
-        f1_d = di_d
+        f1_d = u_d / L_d - (R_s*i_d) / L_d + (L_q * p_p * w_rotor * i_q) / L_d
         f2_d = di_d_func(u_d, L_q, L_d, R_s, i_q, i_d+dt/2*f1_d, p_p, w_rotor)
         f3_d = di_d_func(u_d, L_q, L_d, R_s, i_q, i_d+dt/2*f2_d, p_p, w_rotor)
         f4_d = di_d_func(u_d, L_q, L_d, R_s, i_q, i_d+dt*f3_d, p_p, w_rotor)
@@ -118,10 +98,12 @@ if __name__ == '__main__':
 
         alpha_motor = 1 / J * (T_em - T_load - w_rotor * b_v)
         w_rotor = w_rotor + alpha_motor * dt
-        theta_rotor = theta_rotor + w_rotor * dt
+        theta_rotor = theta_rotor + w_rotor * dt + 0.5*alpha_motor*dt**2
         theta_e = theta_rotor * p_p
-
         T_sim.append(T_em)
+
+        T_2.append(motor.step(t))
+
     time2, tau2, omega2 = read_file('matlab_simulation_data/PMSM_dq_model.csv')
 
     # plot the data
@@ -129,6 +111,7 @@ if __name__ == '__main__':
     ax = fig.add_subplot(1, 1, 1)
     ax.plot(time2, tau2, color='r')
     ax.plot(time, T_sim, color='b')
+    ax.plot(time, T_2, color='k')
     ax.set_xlim([0, 0.5])
     ax.set_ylim([-900, 900])
     ax.set_title('plot')

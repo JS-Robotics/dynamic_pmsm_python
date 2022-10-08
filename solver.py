@@ -1,24 +1,26 @@
-from numpy import array, matrix
+
+def rk4_single_step(func, dt, t_k, y_k):
+    """
+    This function performs a single 4th order Runge-Kutta integration.
+    :param func: The ODE that will be used for the integration step
+    :param dt: The step time
+    :param t_k: The current time of the ODE
+    :param y_k: The current state of the ODE
+    :return: y_(k+1) The system integrated one time step
+    """
+    f1 = func(t_k, y_k)
+    f2 = func(t_k+dt/2, y_k+(dt/2)*f1)
+    f3 = func(t_k+dt/2, y_k+(dt/2)*f2)
+    f4 = func(t_k+dt, y_k+dt*f3)
+    y_k1 = y_k + (dt/6) * (f1 + 2*f2 + 2*f3 + f4)
+    return y_k1
 
 
-class Solver:
-    def __init__(self, driving_equations: [], step_time: float, start_time: float, end_time: float):
-        self.driving_equations = driving_equations
-        self.dt = step_time
-        self.start = start_time
-        self.end = end_time
-
-    def simulate(self):
-        time = self.create_time_span(self.start, self.end, self.dt)
-
-
-
-    @staticmethod
-    def create_time_span(t_start, t_end, step_size):
-        time_span = []
-        time = t_start
-        while time <= t_end:
-            time_span.append(time)
-            time += step_size
+def create_time_span(t_start, t_end, step_size):
+    time_span = []
+    time = t_start
+    while time <= t_end:
         time_span.append(time)
-        return time_span
+        time += step_size
+    time_span.append(time)
+    return time_span
