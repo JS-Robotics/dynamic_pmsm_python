@@ -14,13 +14,3 @@ def rk4_single_step(func, dt, t_k, y_k):
     f4 = func(t_k+dt, y_k+dt*f3)
     y_k1 = y_k + (dt/6) * (f1 + 2*f2 + 2*f3 + f4)
     return y_k1
-
-
-def create_time_span(t_start, t_end, step_size):
-    time_span = []
-    time = t_start
-    while time <= t_end:
-        time_span.append(time)
-        time += step_size
-    time_span.append(time)
-    return time_span
