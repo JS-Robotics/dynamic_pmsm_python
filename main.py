@@ -13,7 +13,7 @@ def read_file(file_name):
         omega = []
         for row in csv_reader:
             if line_count == 0:
-                print(row)
+                pass  # Skipping row with headers
             else:
                 time_s.append(float(row[0]))
                 tau.append(float(row[1]))
@@ -34,9 +34,10 @@ def create_time_span(t_start, t_end, step_size):
 
 def clarke_transformation(a, b, c):
     """
-    :param a:
-    :param b:
-    :param c:
+    Transform from three-phase to alpha-beta reference
+    :param a: Phase a value
+    :param b: Phase b value
+    :param c: Phase c value
     :return: alpha, beta
     """
     alpha = 2 / 3 * (a - 0.5 * b - 0.5 * c)
@@ -45,6 +46,13 @@ def clarke_transformation(a, b, c):
 
 
 def park_transformation(alpha, beta, angle):
+    """
+    Transform from alpha-beta reference to synchronous dq-axis
+    :param alpha: Phase alpha value
+    :param beta:  Phase beta value
+    :param angle: Electrical angular position
+    :return: d, q
+    """
     d = cos(angle) * alpha + sin(angle) * beta
     q = -sin(angle) * alpha + cos(angle) * beta
     return d, q
@@ -69,7 +77,7 @@ if __name__ == '__main__':
     i_q = 0
     i_d = 0
 
-    dt = 0.000001
+    dt = 0.000001#0.000001
     time = create_time_span(0, 0.5, dt)
     w_psu = 60 * 2 * pi
     a_psu = 230
@@ -97,9 +105,9 @@ if __name__ == '__main__':
         f4_q = di_q_func(u_q, L_q, L_d, R_s, i_q+dt*f3_q, i_d, p_p, w_rotor, lambda_m)
 
         f1_d = di_d
-        f2_d = di_d_func(u_d, L_q, L_d, R_s, i_q, i_d+dt/2*f1_d, p_p, w_rotor, lambda_m)
-        f3_d = di_d_func(u_d, L_q, L_d, R_s, i_q, i_d+dt/2*f2_d, p_p, w_rotor, lambda_m)
-        f4_d = di_d_func(u_d, L_q, L_d, R_s, i_q, i_d+dt*f3_d, p_p, w_rotor, lambda_m)
+        f2_d = di_d_func(u_d, L_q, L_d, R_s, i_q, i_d+dt/2*f1_d, p_p, w_rotor)
+        f3_d = di_d_func(u_d, L_q, L_d, R_s, i_q, i_d+dt/2*f2_d, p_p, w_rotor)
+        f4_d = di_d_func(u_d, L_q, L_d, R_s, i_q, i_d+dt*f3_d, p_p, w_rotor)
 
         i_q = i_q + dt / 6 * (f1_q + 2 * f2_q + 2 * f3_q + f4_q)
         #i_q = i_q + di_q * dt

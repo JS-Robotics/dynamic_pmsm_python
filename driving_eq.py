@@ -3,6 +3,6 @@ def di_q_func(u_q, L_q, L_d, R_s, i_q, i_d, p_p, w_rotor, lambda_m):
     return di_q_r
 
 
-def di_d_func(u_d, L_q, L_d, R_s, i_q, i_d, p_p, w_rotor, lambda_m):
+def di_d_func(u_d, L_q, L_d, R_s, i_q, i_d, p_p, w_rotor):
     di_d_r = u_d / L_d - (R_s * i_d) / L_d + (L_q * p_p * w_rotor * i_q) / L_d
     return di_d_r
