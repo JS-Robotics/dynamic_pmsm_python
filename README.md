@@ -27,8 +27,9 @@ Where:
 | $T_{load}$  | -   | External load torque            | $\sim$ | $Nm$      |
 | $L_q$       | -   | Quadrature inductance           | $\sim$ | $H$       |
 | $L_d$       | -   | Direct inductance               | $\sim$ | $H$       |
-| $R_s$       | -   | Phase resistance                | $\sim$ | $\Ohm$    |
+| $R_s$       | -   | Phase resistance                | $\sim$ | $\Omega$  |
 | $b_v$       | -   | Viscous damping                 | $\sim$ | $Nms/rad$ |
+| $J$         | -   | Motor inertia                   | $\sim$ | $kg/m^2$  |
 
 #### Aux equations ####
 
