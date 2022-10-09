@@ -25,3 +25,16 @@ def park_transform(alpha, beta, angle):
     d = cos(angle) * alpha + sin(angle) * beta
     q = -sin(angle) * alpha + cos(angle) * beta
     return d, q
+
+
+def inverse_clarke_transform(alpha, beta):
+    a = alpha
+    b = -0.5*alpha + sqrt(3)/2*beta
+    c = -0.5*alpha - sqrt(3)/2*beta
+    return a, b, c
+
+
+def inverse_parke_transform(d, q, angle):
+    alpha = cos(angle)*q - sin(angle)*d
+    beta = sin(angle)*q + cos(angle)*d
+    return alpha, beta

@@ -1,23 +1,30 @@
 from math import pi, sin
 from solver import rk4_single_step
-from transforms import clarke_transform, park_transform
+from transforms import clarke_transform, park_transform, inverse_clarke_transform, inverse_parke_transform
 
 
 class PMSynchronousMotor:
-    def __init__(self, moto_params: dict):
+    def __init__(self, enable_foc: False, moto_params: dict):
+        self.enable_foc = enable_foc
+
         # Motor Parameters
-        self.b_viscous = 0.0004924  # Viscous damping
-        self.b_coulomb = 0.0
-        self.p = 4  # poles
-        self.t_load = 15
-        self.motor_inertia = 0.0027  # kg.m^2
-        self.R_s = 0.0485  # Ohm
-        phase_inductance = 0.000395  # H
-        self.L_q = 0.5 * phase_inductance
-        self.L_d = self.L_q
-        psi_r = 0.2194
-        self.lambda_m = 4 / 9 * psi_r
+        self.b_viscous = 0.001  # Viscous damping
+        self.b_coulomb = 0.001
+        self.p = 14  # poles
+        KV = 270
+        kt = 8.27 / KV
+        self.t_load = 0.5
+        self.motor_inertia = 1e-4  # kg.m^2
+        self.R_s = 0.039  # Ohm
+        phase_inductance = 0.0000157  # H
+        self.L_q = phase_inductance
+        self.L_d = phase_inductance
+        self.lambda_m = 2 * kt / (3 * self.p / 2)
         self.dt = moto_params['dt']
+
+        # FOC parameters
+        self.i_q_ref = 0 * 4 / (3 * self.p * self.lambda_m)
+        self.i_d_ref = 0
 
         # Initial conditions
         self.u_d = 0
@@ -37,10 +44,24 @@ class PMSynchronousMotor:
         self.phase_c = -240 * pi / 180
 
     def step(self, time):
-        u_a = self.a_psu * sin(self.w_psu * time + self.phase_a)
-        u_b = self.a_psu * sin(self.w_psu * time + self.phase_b)
-        u_c = self.a_psu * sin(self.w_psu * time + self.phase_c)
-        u_alpha, u_beta = clarke_transform(u_a, u_b, u_c)
+        if not self.enable_foc:
+            u_a = self.a_psu * sin(self.w_psu * time + self.phase_a)
+            u_b = self.a_psu * sin(self.w_psu * time + self.phase_b)
+            u_c = self.a_psu * sin(self.w_psu * time + self.phase_c)
+            u_alpha, u_beta = clarke_transform(u_a, u_b, u_c)
+        else:
+            if time > 0.25:
+                self.i_q_ref = 1 * 4/(3*self.p*self.lambda_m)
+            else:
+                self.i_q_ref = 0
+            i_q_error = self.i_q_ref - self.i_q
+            i_d_error = self.i_d_ref - self.i_d
+            u_q = i_q_error * 12000
+            u_d = i_d_error * 12000
+            u_alpha, u_beta = inverse_parke_transform(u_d, u_q, self.theta_e)
+            u_a, u_b, u_c = inverse_clarke_transform(u_alpha, u_beta)
+            u_alpha, u_beta = clarke_transform(u_a, u_b, u_c)
+
         self.u_d, self.u_q = park_transform(u_alpha, u_beta, self.theta_e)
 
         self.i_q = rk4_single_step(self.di_q_func, self.dt, time, self.i_q)

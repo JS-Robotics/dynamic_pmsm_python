@@ -25,15 +25,6 @@ Note: The simulation of the simulink and the dq-frame model are equivalent in va
 """
 
 # Electrical parameters of PMSM motor
-p = 4  # poles
-n_p = p / 2  # pole pairs
-T_rated = 0.8  # Nm
-n_rated = 4500  # rpm
-I_rated = 1.4  # A, rms
-J = 0.0027  # kg.m^2
-R_s = 0.0485  # Ohm
-L_s = 0.000395  # H
-b = 0.0004924  # Viscous damping
 # Calculated parameters:
 # psi_R= 3*T_rated/sqrt(2)/p/I_rated;
 psi_R = 0.2194
@@ -44,6 +35,13 @@ psi_R = 0.2194
 
 # dq model
 # L_s = 1/2(L_d + L_q) here it is assumed that L_q = L_d
-L_q = 0.5 * L_s
-L_d = L_q
-lambda_m = 4 / 9 * psi_R
+L_s = 0.0000157
+L_q = L_s
+L_d = L_s
+p = 14
+n_p = p/2
+KV = 270
+kt = 8.27/KV
+J = 1e-4
+b = 0.001
+lambda_m = 2*kt/(3*n_p)
