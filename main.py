@@ -5,7 +5,7 @@ from pmsm import PMSynchronousMotor
 
 
 if __name__ == '__main__':
-    dt = 0.000001
+    dt = 0.0000006
     time = create_time_span(0, 0.5, dt)
     T_sim = []
     motor = PMSynchronousMotor(enable_foc=True, moto_params={"dt": dt})
@@ -21,7 +21,8 @@ if __name__ == '__main__':
     ax = fig.add_subplot(1, 1, 1)
     #ax.plot(time_m, tau, color='r')
     ax.plot(time, T_sim, color='b')
+    height = 2  # 900
     ax.set_xlim([0, 0.5])
-    ax.set_ylim([-900, 900])
+    ax.set_ylim([-height, height])
     ax.set_title('plot')
     plt.show()

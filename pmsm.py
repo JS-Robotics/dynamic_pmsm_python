@@ -49,6 +49,7 @@ class PMSynchronousMotor:
             u_b = self.a_psu * sin(self.w_psu * time + self.phase_b)
             u_c = self.a_psu * sin(self.w_psu * time + self.phase_c)
             u_alpha, u_beta = clarke_transform(u_a, u_b, u_c)
+            self.u_d, self.u_q = park_transform(u_alpha, u_beta, self.theta_e)
         else:
             if time > 0.25:
                 self.i_q_ref = 1 * 4/(3*self.p*self.lambda_m)
@@ -58,11 +59,18 @@ class PMSynchronousMotor:
             i_d_error = self.i_d_ref - self.i_d
             u_q = i_q_error * 12000
             u_d = i_d_error * 12000
+            if u_d > 24:
+                u_d = 24
+            if u_d < -24:
+                u_d = -24
+            if u_q > 24:
+                u_q = 24
+            if u_q < -24:
+                u_q = -24
             u_alpha, u_beta = inverse_parke_transform(u_d, u_q, self.theta_e)
             u_a, u_b, u_c = inverse_clarke_transform(u_alpha, u_beta)
-            u_alpha, u_beta = clarke_transform(u_a, u_b, u_c)
-
-        self.u_d, self.u_q = park_transform(u_alpha, u_beta, self.theta_e)
+            self.u_d = u_d
+            self.u_q = u_q
 
         self.i_q = rk4_single_step(self.di_q_func, self.dt, time, self.i_q)
         self.i_d = rk4_single_step(self.di_d_func, self.dt, time, self.i_d)
