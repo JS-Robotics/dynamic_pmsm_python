@@ -72,8 +72,11 @@ class PMSynchronousMotor:
             self.u_d = u_d
             self.u_q = u_q
 
+        #self.i_q += self.di_q_func(time, self.i_q)*self.dt
+        # self.i_d += self.di_d_func(time, self.i_d)*self.dt
         self.i_q = rk4_single_step(self.di_q_func, self.dt, time, self.i_q)
         self.i_d = rk4_single_step(self.di_d_func, self.dt, time, self.i_d)
+
 
         self.torque_em = 1.5 * self.p / 2 * (self.lambda_m * self.i_q + (self.L_d - self.L_q) * self.i_d * self.i_q)
 

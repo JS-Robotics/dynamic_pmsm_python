@@ -1,4 +1,13 @@
 # Dynamic Permanent Magnet Synchronous Motor
+Notes: 
+* **FOC is working**, however a solver similar to Matlab's ODE15s. 
+ode15s is a variable-step, variable-order (VSVO) solver based on the numerical differentiation formulas (NDFs) of 
+orders 1 to 5. Optionally, it can use the backward differentiation formulas (BDFs, also known as Gear's method) 
+that are usually less efficient. Like ode113, ode15s is a multistep solver. Use ode15s if ode45 fails or is very 
+inefficient, and you suspect that the problem is stiff, or when solving a differential-algebraic equation (DAE) 
+
+
+* It has been verified that a similar behaviour occurs in matlab with ode4 (4th Order Runge-Kutta) solver in Matlab/Simulink
 
 ### Dynamic driving equations ###
 
