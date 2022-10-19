@@ -30,7 +30,9 @@ class PMSynchronousMotor:
         self.u_d = 0
         self.u_q = 0
         self.i_q = 0
+        self.i_q_old = 0
         self.i_d = 0
+        self.i_d_old = 0
         self.theta_e = 0
         self.w_rotor = 0
         self.theta_rotor = 0
@@ -52,7 +54,7 @@ class PMSynchronousMotor:
             self.u_d, self.u_q = park_transform(u_alpha, u_beta, self.theta_e)
         else:
             if time > 0.25:
-                self.i_q_ref = 1 * 4/(3*self.p*self.lambda_m)
+                self.i_q_ref = 1 * 4 / (3 * self.p * self.lambda_m)
             else:
                 self.i_q_ref = 0
             i_q_error = self.i_q_ref - self.i_q
@@ -72,11 +74,43 @@ class PMSynchronousMotor:
             self.u_d = u_d
             self.u_q = u_q
 
-        #self.i_q += self.di_q_func(time, self.i_q)*self.dt
+        # self.i_q += self.di_q_func(time, self.i_q)*self.dt
         # self.i_d += self.di_d_func(time, self.i_d)*self.dt
-        self.i_q = rk4_single_step(self.di_q_func, self.dt, time, self.i_q)
-        self.i_d = rk4_single_step(self.di_d_func, self.dt, time, self.i_d)
 
+        x0 = self.i_q_old
+        x1 = self.i_q
+        x_ = x1
+        for k in range(10):
+            if x1 == x0:
+                x1 = x1 - 0.01
+            g1 = x1 - x_ - self.dt * self.di_q_func(time, x1)
+            g0 = x0 - x_ - self.dt * self.di_q_func(time, x0)
+            if g1 == g0:
+                g1 = g1 - 0.01
+            x_new = x1 - g1 * (x1 - x0) / (g1 - g0)
+            x0 = x1
+            x1 = x_new
+        self.i_q_old = x0
+        self.i_q = x1
+
+        x0 = self.i_d_old
+        x1 = self.i_d
+        x_ = x1
+        for k in range(10):
+            if x1 == x0:
+                x1 = x1 - 0.01
+            g1 = x1 - x_ - self.dt * self.di_d_func(time, x1)
+            g0 = x0 - x_ - self.dt * self.di_d_func(time, x0)
+            if g1 == g0:
+                g1 = g1 - 0.01
+            x_new = x1 - g1 * (x1 - x0) / (g1 - g0)
+            x0 = x1
+            x1 = x_new
+        self.i_d_old = x0
+        self.i_d = x1
+
+        # self.i_q = rk4_single_step(self.di_q_func, self.dt, time, self.i_q)
+        # self.i_d = rk4_single_step(self.di_d_func, self.dt, time, self.i_d)
 
         self.torque_em = 1.5 * self.p / 2 * (self.lambda_m * self.i_q + (self.L_d - self.L_q) * self.i_d * self.i_q)
 
